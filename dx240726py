@@ -5,3 +5,46 @@ from io import StringIO
 
 session = HTMLSession()
 link_list = []
+
+
+for page in range(10): ## 119 : 총 페이지
+    link = f'https://franchise.ftc.go.kr/mnu/00013/program/userRqst/list.do?pageIndex={page+1}&pageUnit=10'
+    res = session.post(link)
+    res.encoding = 'utf-8'
+    soup = BeautifulSoup(res.text, 'html.parser')
+    print(page)
+    
+    for i in range(int(len(soup.select('.authCtrl'))/2)):
+        link_list.append(str(soup.select('.authCtrl')[i*2]).split("/mnu/00013/program/userRqst/view.do?")[1].split("')")[0])
+
+merge_list = []
+for i,link in enumerate(link_list): 
+
+    response = session.get('https://franchise.ftc.go.kr/mnu/00013/program/userRqst/view.do?'+link)
+    soup = BeautifulSoup(response.html.html, 'html.parser')
+    tables = soup.select('table')
+    df = pd.read_html(StringIO(str(tables[0])))[0]
+    df2 = pd.read_html(StringIO(str(tables[1])))[0]
+    
+    tel = df['대표자'][2]
+    fax = df['업종'][2]
+    name = df['상호'][0]
+    address = df2.loc[0,1]
+    
+    temp_list = [name , tel , fax , address]
+    if i % 100 == 0:
+        print(i)
+    merge_list.append(temp_list)
+
+xlsx = pd.DataFrame(merge_list , columns = ['상호','대표번호','팩스번호','주소'])
+xlsx.to_excel("franchise_output_data.xlsx",index = False)
+
+
+
+
+
+
+
+
+
+
