@@ -1,0 +1,7 @@
+import pandas as pd
+from bs4 import BeautifulSoup
+from requests_html import HTMLSession
+from io import StringIO
+
+session = HTMLSession()
+link_list = []
